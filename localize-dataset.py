@@ -9,8 +9,8 @@ from tqdm import tqdm
 LOCALIZE_WIDTH = 480
 LOCALIZE_HEIGHT = 270
 
-input_dir = ""
-output_dir = ""
+input_dir = ''
+output_dir = ''
 
 def localize_bbox_1d(obj_s, obj_e, crp_s, crp_e, max_size):
     lcl_obj_s = 0
@@ -47,8 +47,8 @@ def main():
     global output_dir
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("input_dir", help="input directory")
-    parser.add_argument("output_dir", help="output directory")
+    parser.add_argument('input_dir', help='input directory')
+    parser.add_argument('output_dir', help='output directory')
 
     args = parser.parse_args()
     input_dir = args.input_dir
@@ -59,10 +59,10 @@ def main():
 
     os.makedirs(output_dir)
 
-    read_files = glob.glob(os.path.join(input_dir, "*.txt"))
+    files = glob.glob(os.path.join(input_dir, '*.txt'))
 
-    for read_file in tqdm(read_files):
-        img_path = os.path.join(read_file.replace(".txt", ".png"))
+    for file in tqdm(files):
+        img_path = os.path.join(file.replace('.txt', '.png'))
 
         img = cv2.imread(img_path)
         img_h, img_w = img.shape[:2]
@@ -70,12 +70,12 @@ def main():
         crp_num_x = int(img_w / LOCALIZE_WIDTH)
         crp_num_y = int(img_h / LOCALIZE_HEIGHT)
 
-        with open(read_file, "r") as rf:
+        with open(file, 'r') as rf:
             lines = rf.readlines()
 
             for line in lines:
-                line = line.replace("\n", "")
-                value = line.split(" ")
+                line = line.replace('\n', '')
+                value = line.split(' ')
     
                 obj_class = int(value[0])
                 obj_cx = float(value[1]) * img_w
@@ -88,7 +88,7 @@ def main():
                 obj_sy = obj_cy - (obj_h/2.0)
                 obj_ey = obj_cy + (obj_h/2.0)
     
-                lcl_img_num = 0
+                num = 0
                 for i in range(crp_num_y):
                     crp_sy = LOCALIZE_HEIGHT * i
                     crp_ey = crp_sy + LOCALIZE_HEIGHT
@@ -96,7 +96,7 @@ def main():
                     lcl_obj_sy, lcl_obj_ey = localize_bbox_1d(obj_sy, obj_ey, crp_sy, crp_ey, LOCALIZE_HEIGHT)
     
                     for j in range(crp_num_x):
-                        lcl_img_num += 1
+                        num += 1
     
                         crp_sx = LOCALIZE_WIDTH * j
                         crp_ex = crp_sx + LOCALIZE_WIDTH
@@ -107,19 +107,22 @@ def main():
                         lcl_obj_sx, lcl_obj_ex = localize_bbox_1d(obj_sx, obj_ex, crp_sx, crp_ex, LOCALIZE_WIDTH)
     
                         lcl_img = img[crp_sy:crp_ey, crp_sx:crp_ex]
-                        lcl_img_name = os.path.basename(img_path).replace(".png", ("_" + str(lcl_img_num) + ".png"))
-    
-                        cv2.imwrite(os.path.join(output_dir, lcl_img_name), lcl_img)
 
-                        with open(os.path.join(output_dir, lcl_img_name.replace(".png", ".txt")), "a") as wf:
-                            if(((lcl_obj_ey - lcl_obj_sy) == 0) or ((lcl_obj_ey - lcl_obj_sy) == 0)):
-                                pass
-                            else:
-                                print(str(obj_class), " ", \
-                                      str((lcl_obj_sx+lcl_obj_ex) / (LOCALIZE_WIDTH*2)), " ", \
-                                      str((lcl_obj_sy+lcl_obj_ey) / (LOCALIZE_HEIGHT*2)), " ", \
-                                      str((lcl_obj_ex-lcl_obj_sx) / LOCALIZE_WIDTH), " ", \
+                        lcl_img_path = os.path.join(output_dir, \
+                                                    os.path.basename(img_path).replace('.png', ('_' + str(num) + '.png')))
+
+                        if(((lcl_obj_ex - lcl_obj_sx) == 0) or ((lcl_obj_ey - lcl_obj_sy) == 0)):
+                            pass
+                        else:
+                            with open(lcl_img_path.replace('.png', '.txt'), 'a') as wf:
+                                print(str(obj_class), ' ', \
+                                      str((lcl_obj_sx+lcl_obj_ex) / (LOCALIZE_WIDTH*2)), ' ', \
+                                      str((lcl_obj_sy+lcl_obj_ey) / (LOCALIZE_HEIGHT*2)), ' ', \
+                                      str((lcl_obj_ex-lcl_obj_sx) / LOCALIZE_WIDTH), ' ', \
                                       str((lcl_obj_ey-lcl_obj_sy) / LOCALIZE_HEIGHT), file=wf)
-    
-if __name__ == "__main__":
+
+                                if(os.path.exists(lcl_img_path) == False):
+                                    cv2.imwrite(lcl_img_path, lcl_img)
+
+if __name__ == '__main__':
     main()
