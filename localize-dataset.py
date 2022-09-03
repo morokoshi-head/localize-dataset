@@ -6,13 +6,11 @@ import shutil
 import sys
 from tqdm import tqdm
 
-
 LOCALIZE_WIDTH = 480
 LOCALIZE_HEIGHT = 270
 
 input_dir = ""
 output_dir = ""
-
 
 def localize_bbox_1d(obj_s, obj_e, crp_s, crp_e, max_size):
     lcl_obj_s = 0
@@ -44,7 +42,6 @@ def localize_bbox_1d(obj_s, obj_e, crp_s, crp_e, max_size):
 
     return lcl_obj_s, lcl_obj_e
 
-
 def main():
     global input_dir
     global output_dir
@@ -62,7 +59,7 @@ def main():
 
     os.makedirs(output_dir)
 
-    read_files = glob.glob(input_dir + "/" + "*.txt")
+    read_files = glob.glob(os.path.join(input_dir, "*.txt"))
 
     for read_file in tqdm(read_files):
         img_path = os.path.join(read_file.replace(".txt", ".png"))
@@ -83,8 +80,8 @@ def main():
                 obj_class = int(value[0])
                 obj_cx = float(value[1]) * img_w
                 obj_cy = float(value[2]) * img_h
-                obj_w  = float(value[3]) * img_w
-                obj_h  = float(value[4]) * img_h
+                obj_w = float(value[3]) * img_w
+                obj_h = float(value[4]) * img_h
     
                 obj_sx = obj_cx - (obj_w/2.0)
                 obj_ex = obj_cx + (obj_w/2.0)
@@ -123,7 +120,6 @@ def main():
                                       str((lcl_obj_sy+lcl_obj_ey) / (LOCALIZE_HEIGHT*2)), " ", \
                                       str((lcl_obj_ex-lcl_obj_sx) / LOCALIZE_WIDTH), " ", \
                                       str((lcl_obj_ey-lcl_obj_sy) / LOCALIZE_HEIGHT), file=wf)
-    
     
 if __name__ == "__main__":
     main()
